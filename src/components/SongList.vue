@@ -32,10 +32,28 @@ li {
   align-items: center;
   padding: 10px;
   border-bottom: 1px solid #ccc;
+  /* Default light theme styles */
+  background-color: #ffffff;
+  color: #2c3e50;
 }
+
+/* Dark theme styles */
+[data-theme='dark'] li {
+  background-color: #2d2d2d;
+  color: #e0e0e0;
+  border-color: #555;
+}
+
 span {
   flex-grow: 1;
   margin-right: 10px;
+  /* Default light theme styles */
+  color: #2c3e50;
+}
+
+/* Dark theme styles */
+[data-theme='dark'] span {
+  color: #e0e0e0;
 }
 .add-button {
   background: none;

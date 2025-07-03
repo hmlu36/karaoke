@@ -2,6 +2,9 @@
   <div id="app">
     <header>
       <h1>卡拉OK小幫手</h1>
+      <button @click="toggleTheme" class="theme-toggle-button">
+        {{ theme === 'dark' ? '切換淺色模式' : '切換深色模式' }}
+      </button>
     </header>
     <div class="container">
       <div class="player-section">
@@ -46,7 +49,8 @@ export default {
       songs: songs,
       searchQuery: '',
       queue: [],
-      currentSong: null
+      currentSong: null,
+      theme: 'light'
     };
   },
   computed: {
@@ -78,25 +82,58 @@ export default {
       } else {
         this.currentSong = null;
       }
+    },
+    toggleTheme() {
+      this.theme = this.theme === 'dark' ? 'light' : 'dark';
     }
   },
   mounted() {
+    document.documentElement.setAttribute('data-theme', this.theme);
     this.playNext();
+  },
+  watch: {
+    theme(newTheme) {
+      document.documentElement.setAttribute('data-theme', newTheme);
+    }
   }
 };
 </script>
 
-<style>
+<style scoped>
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  color: #2c3e50;
+  color: var(--primary-text);
+  background-color: var(--primary-bg);
 }
 
 header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
   text-align: center;
   margin-bottom: 20px;
+}
+
+.theme-toggle-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: 1px solid #ccc;
+  color: #2c3e50;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theme-toggle-button:hover {
+  color: #ff4d4d;
 }
 
 .container {
@@ -116,7 +153,8 @@ header {
   gap: 20px;
 }
 
-.queue-section, .search-section {
+.queue-section,
+.search-section {
   border: 1px solid #ccc;
   padding: 10px;
   overflow-y: auto;
@@ -126,6 +164,10 @@ header {
 
 .queue-section {
   flex-basis: 40%; /* Takes up 40% of the sidebar height */
+}
+
+.search-section {
+  flex-basis: 60%; /* Takes up 60% of the sidebar height */
 }
 
 .queue-header {
@@ -159,7 +201,49 @@ header {
   height: 20px;
 }
 
-.search-section {
-  flex-basis: 60%; /* Takes up 60% of the sidebar height */
+.search-section input {
+  background-color: #ffffff; /* Light background color */
+  color: #2c3e50; /* Light text color */
+}
+
+/* Dark theme styles */
+[data-theme='dark'] {
+  color: #e0e0e0; /* Lighter text color for dark mode */
+  background-color: #1e1e1e; /* Dark background for dark mode */
+}
+
+[data-theme='dark'] header h1 {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .search-section input {
+  background-color: #2d2d2d;
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .theme-toggle-button {
+  border-color: #555;
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .theme-toggle-button:hover {
+  color: #ff7f7f; /* Lighter hover color */
+}
+
+[data-theme='dark'] .queue-section,
+[data-theme='dark'] .search-section {
+  border-color: #555;
+}
+
+[data-theme='dark'] .queue-header h2 {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .next-button {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .next-button:hover {
+  color: #ff7f7f;
 }
 </style>

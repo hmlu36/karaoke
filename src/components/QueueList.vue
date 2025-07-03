@@ -34,14 +34,27 @@ li {
   justify-content: space-between;
   align-items: center;
   padding: 5px;
-  background-color: #f0f0f0;
   margin-bottom: 5px;
+  /* Default light theme styles */
+  background-color: #f0f0f0;
+  color: #2c3e50;
 }
+
+/* Dark theme styles */
+[data-theme='dark'] li {
+  background-color: #3a3a3a;
+  color: #e0e0e0;
+}
+
 button {
   background-color: #ff4d4d;
   color: white;
   border: none;
   padding: 2px 5px;
   cursor: pointer;
+}
+
+[data-theme='dark'] button {
+  background-color: #ff7f7f;
 }
 </style>
