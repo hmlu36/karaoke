@@ -74,6 +74,13 @@ export default {
         this.playNext();
       }
     },
+    playNext() {
+      if (this.queue.length > 0) {
+        this.currentSong = this.queue.shift();
+      } else {
+        this.currentSong = null;
+      }
+    },
     handleDeleteSong(index) {
       this.queue.splice(index, 1);
     },
