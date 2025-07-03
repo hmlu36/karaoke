@@ -10,11 +10,11 @@ jobs:
       MY_SECRET: ${{secrets.commit_secret}}
       USER_NAME: joshua.lu
       USER_EMAIL: hmlu36@gmail.com
-      PUBLISH_DIR: ./docs/.vitepress/dist
+      PUBLISH_DIR: ./dist
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [16.20.2]
+        node-version: [20.x]
     steps:
       - uses: actions/checkout@v2
       - name: Use Node.js ${{ matrix.node-version }}
@@ -40,4 +40,3 @@ jobs:
           git commit -m "deploy to Github pages"
           git push origin gh-pages -f
           echo 🤘 deploy gh-pages complete.
-          
