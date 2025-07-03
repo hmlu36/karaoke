@@ -64,8 +64,16 @@ span {
   display: flex;
   align-items: center;
 }
+
+[data-theme='dark'] .add-button {
+  color: white; /* White color for add icon in dark mode */
+}
 .add-button:hover {
-  color: #42b983;
+  color: #66ffb3; /* Brighter hover color */
+}
+
+[data-theme='dark'] .add-button:hover {
+  color: #90ee90; /* Even brighter hover color in dark mode */
 }
 .add-button svg {
   width: 18px;
