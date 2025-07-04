@@ -15,5 +15,12 @@ export default defineConfig({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
+    build: {
+      // 確保構建輸出的資源路徑正確
+      outDir: 'dist',
+      assetsDir: 'assets',
+      // 生成源碼映射以便調試
+      sourcemap: true
+    }
   },
 })
