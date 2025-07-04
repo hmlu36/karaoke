@@ -1,23 +1,22 @@
 <template>
   <div id="app">
-    <header>
-      <h1>卡拉OK小幫手</h1>
-      <button @click="toggleTheme" class="theme-toggle-button" title="切換深淺色模式">
-        <svg v-if="theme === 'dark'" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-        <svg v-else xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-      </button>
-    </header>
     <div class="container">
       <div class="player-section">
-        <VideoPlayer :currentSong="currentSong" @ended="playNext" />
+        <VideoPlayer :currentSong="currentSong" @song-ended="playNext" />
       </div>
       <div class="sidebar-section">
         <div class="queue-section">
           <div class="queue-header">
             <h2>待播清單</h2>
-            <button @click="playNext" class="next-button" title="播放下一首">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
-            </button>
+            <div class="header-buttons">
+              <button @click="toggleTheme" class="theme-toggle-button" title="切換深淺色模式">
+                <svg v-if="theme === 'dark'" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                <svg v-else xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+              </button>
+              <button @click="playNext" class="next-button" title="播放下一首">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
+              </button>
+            </div>
           </div>
           <QueueList :queue="queue" @delete-song="handleDeleteSong" />
         </div>
@@ -60,7 +59,8 @@ export default {
         return this.songs;
       }
       return this.songs.filter(song =>
-        song.title.toLowerCase().includes(this.searchQuery.toLowerCase())
+        song.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+        song.artist.toLowerCase().includes(this.searchQuery.toLowerCase())
       );
     }
   },
@@ -83,13 +83,6 @@ export default {
     },
     handleDeleteSong(index) {
       this.queue.splice(index, 1);
-    },
-    playNext() {
-      if (this.queue.length > 0) {
-        this.currentSong = this.queue.shift();
-      } else {
-        this.currentSong = null;
-      }
     },
     toggleTheme() {
       this.theme = this.theme === 'dark' ? 'light' : 'dark';
@@ -114,144 +107,146 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   color: var(--primary-text);
   background-color: var(--primary-bg);
-}
-
-header {
-  display: flex;
-  justify-content: center;
-  align-items: center;
   position: relative;
-  text-align: center;
-  margin-bottom: 20px;
+  height: 100vh;
 }
 
 .theme-toggle-button {
-  position: absolute;
-  top: 10px;
-  right: 10px;
   background: none;
-  border: 1px solid #ccc;
-  color: #2c3e50;
+  border: 2px solid var(--secondary-text); /* Thicker border */
+  color: var(--primary-text);
   cursor: pointer;
-  padding: 5px;
-  border-radius: 5px;
+  padding: 10px 15px; /* Increased padding */
+  border-radius: 8px; /* Larger border-radius */
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 1.5em; /* Larger icon/text */
 }
 
 .theme-toggle-button:hover {
-  color: #ff4d4d;
+  color: var(--accent-color); /* Use accent color for hover */
 }
 
 .container {
   display: flex;
-  gap: 20px;
-  height: calc(100vh - 100px); /* Adjust height based on header */
+  gap: 30px; /* Increased gap */
+  height: 100%;
+  padding: 20px; /* Added padding */
 }
 
 .player-section {
-  flex: 4; /* Takes up 80% of the space */
+  flex: 4;
 }
 
 .sidebar-section {
-  flex: 1; /* Takes up 20% of the space */
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 30px; /* Increased gap */
 }
 
 .queue-section,
 .search-section {
-  border: 1px solid #ccc;
-  padding: 10px;
+  border: 2px solid var(--secondary-text); /* Thicker border */
+  padding: 20px; /* Increased padding */
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+  border-radius: 10px; /* Larger border-radius */
 }
 
 .queue-section {
-  flex-basis: 40%; /* Takes up 40% of the sidebar height */
+  flex-basis: 40%;
 }
 
 .search-section {
-  flex-basis: 60%; /* Takes up 60% of the sidebar height */
+  flex-basis: 60%;
 }
 
 .queue-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 15px; /* Increased margin */
 }
 
 .queue-header h2 {
   margin: 0;
+  font-size: 2em; /* Larger heading */
+}
+
+.header-buttons {
+  display: flex;
+  gap: 10px;
 }
 
 .next-button {
   background: none;
-  border: none;
-  color: #2c3e50;
+  border: 2px solid var(--secondary-text); /* Thicker border */
+  color: var(--primary-text);
   cursor: pointer;
-  padding: 0;
+  padding: 10px 15px; /* Increased padding */
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 8px; /* Larger border-radius */
 }
 
 .next-button:hover {
-  color: #ff4d4d;
+  color: var(--accent-color); /* Use accent color for hover */
 }
 
 .next-button svg {
-  width: 20px;
-  height: 20px;
+  width: 32px; /* Larger icon */
+  height: 32px; /* Larger icon */
 }
 
 .search-section input {
-  background-color: #ffffff; /* Light background color */
-  color: #2c3e50; /* Light text color */
+  background-color: var(--secondary-bg);
+  color: var(--primary-text);
+  padding: 12px; /* Increased padding */
+  border: 1px solid var(--secondary-text);
+  border-radius: 5px;
+  font-size: 1.2em; /* Larger font size */
 }
 
 /* Dark theme styles */
 [data-theme='dark'] {
-  color: #e0e0e0; /* Lighter text color for dark mode */
-  background-color: #1e1e1e; /* Dark background for dark mode */
+  color: var(--primary-text);
+  background-color: var(--primary-bg);
 }
 
-[data-theme='dark'] header h1 {
-  color: #e0e0e0;
-}
 
 [data-theme='dark'] .search-section input {
-  background-color: #2d2d2d;
-  color: #e0e0e0;
+  background-color: var(--secondary-bg);
+  color: var(--primary-text);
 }
 
 [data-theme='dark'] .theme-toggle-button {
-  border-color: #555;
-  color: #e0e0e0;
+  border-color: var(--secondary-text);
+  color: var(--primary-text);
 }
 
 [data-theme='dark'] .theme-toggle-button:hover {
-  color: #ff7f7f; /* Lighter hover color */
+  color: var(--accent-color);
 }
 
 [data-theme='dark'] .queue-section,
 [data-theme='dark'] .search-section {
-  border-color: #555;
+  border-color: var(--secondary-text);
 }
 
 [data-theme='dark'] .queue-header h2 {
-  color: #e0e0e0;
+  color: var(--primary-text);
 }
 
 [data-theme='dark'] .next-button {
-  color: #e0e0e0;
+  color: var(--primary-text);
+  border-color: var(--secondary-text);
 }
 
 [data-theme='dark'] .next-button:hover {
-  color: #ff7f7f;
+  color: var(--accent-color);
 }
 </style>
