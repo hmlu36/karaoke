@@ -1,11 +1,12 @@
 from dotenv import load_dotenv
 import os
 import requests
+import pandas as pd
 
 load_dotenv()
 API_KEY = os.getenv('API_KEY')
 print('API_KEY:', API_KEY)
-username = 'davidpinpunhuang8372'
+username = '@cutebearkaraoke'
 
 # 取得 channelId
 url = f'https://www.googleapis.com/youtube/v3/channels?part=id&forUsername={username}&key={API_KEY}'
@@ -29,11 +30,12 @@ while True:
         f'&channelId={channel_id}&part=snippet,id&order=date&maxResults=50&type=video'
         + (f'&pageToken={next_page_token}' if next_page_token else '')
     )
+    print(search_url)
     resp = requests.get(search_url)
     data = resp.json()
     for item in data.get('items', []):
         title = item['snippet']['title']
-        if '伴奏版' in title:
+        if 'Karaoke伴奏' in title:
             idx = title.rfind(')')
             if idx != -1 and idx + 1 < len(title):
                 parsed_title = title[idx+1:].strip()
@@ -41,11 +43,20 @@ while True:
                     parsed_title = title[:idx].strip()
             else:
                 parsed_title = title
-                
+
+            # 先清理標題
+            clean_title = title.replace('(伴奏版)', '').replace('(DIY卡拉OK字幕)', '').replace('(Karaoke伴奏)', '').strip()
+            parts = clean_title.split('-')
+            if len(parts) > 1:
+                artist = parts[1].strip()
+                song_title = parts[0].strip()
+            else:
+                artist = 'Unknown Artist'
+                song_title = clean_title
             videos.append({
                 'id': item['id']['videoId'],
-                'title': title.replace('(伴奏版)', '').replace('(DIY卡拉OK字幕)', '').strip(),
-                'artist': item['snippet']['channelTitle']
+                'title': song_title,
+                'artist': artist
             })
     next_page_token = data.get('nextPageToken')
     if not next_page_token:
@@ -53,19 +64,6 @@ while True:
 
 print(videos)
 
-
-
-result = []
-for item in videos:
-    if '-' in item['title']:
-        artist, title = item['title'].split('-', 1)
-        result.append({
-            'id': item['id'],
-            'title': title.strip(),
-            'artist': artist.strip()
-        })
-    else:
-        # 若沒有 -，就保留原本的
-        result.append(item)
-
-print(result)
+df = pd.DataFrame(videos)
+df.to_excel('songs.xlsx', index=False)
+print("已匯出為 songs.xlsx")

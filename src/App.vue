@@ -9,6 +9,9 @@
           <div class="queue-header">
             <h2>待播清單</h2>
             <div class="header-buttons">
+              <button @click="loadSongsFromPublicUrl" class="refresh-button" title="重新整理歌單">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+              </button>
               <button @click="toggleTheme" class="theme-toggle-button" title="切換深淺色模式">
                 <svg v-if="theme === 'dark'" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
                 <svg v-else xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
@@ -34,7 +37,8 @@ import SearchBar from './components/SearchBar.vue';
 import SongList from './components/SongList.vue';
 import QueueList from './components/QueueList.vue';
 import VideoPlayer from './components/VideoPlayer.vue';
-import songs from './data/songs.js';
+
+const ORIGINAL_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTW4s1j9tfMCEq54uTO2ubmmv7GQxgfAKiBwnF-XYTdBPsP6m_W1YHKxrrVKmGXBzXiaU3Dd5L0DtdF/pub?output=csv';
 
 export default {
   name: 'App',
@@ -46,11 +50,11 @@ export default {
   },
   data() {
     return {
-      songs: songs,
+      songs: [],
       searchQuery: '',
       queue: [],
       currentSong: null,
-      theme: 'light'
+      theme: 'light',
     };
   },
   computed: {
@@ -59,8 +63,8 @@ export default {
         return this.songs;
       }
       return this.songs.filter(song =>
-        song.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        song.artist.toLowerCase().includes(this.searchQuery.toLowerCase())
+        (song.title && song.title.toLowerCase().includes(this.searchQuery.toLowerCase())) ||
+        (song.artist && song.artist.toLowerCase().includes(this.searchQuery.toLowerCase()))
       );
     }
   },
@@ -86,10 +90,54 @@ export default {
     },
     toggleTheme() {
       this.theme = this.theme === 'dark' ? 'light' : 'dark';
+    },
+    async loadSongsFromPublicUrl() {
+      try {
+        // 加上時間戳來防止快取
+        const noCacheUrl = `${ORIGINAL_SHEET_URL}&_=${new Date().getTime()}`;
+        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(noCacheUrl)}`;
+        
+        const response = await fetch(proxyUrl);
+        if (!response.ok) {
+          throw new Error(`Network response was not ok: ${response.statusText}`);
+        }
+        const csvText = await response.text();
+        this.parseCsvData(csvText);
+      } catch (error) {
+        console.error('Error fetching or parsing sheet data:', error);
+      }
+    },
+    parseCsvData(csvText) {
+      const lines = csvText.trim().split(/\r?\n/);
+      if (lines.length < 2) {
+        this.songs = [];
+        return;
+      }
+      
+      const header = lines[0].split(',').map(h => h.trim());
+      const idIndex = header.indexOf('id');
+      const titleIndex = header.indexOf('title');
+      const artistIndex = header.indexOf('artist');
+
+      if (idIndex === -1 || titleIndex === -1 || artistIndex === -1) {
+        console.error("CSV header must contain 'id', 'title', and 'artist' columns.");
+        return;
+      }
+
+      this.songs = lines.slice(1).map(line => {
+        const columns = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+        
+        const id = columns[idIndex] ? columns[idIndex].trim().replace(/"/g, '') : '';
+        const title = columns[titleIndex] ? columns[titleIndex].trim().replace(/"/g, '') : '';
+        const artist = columns[artistIndex] ? columns[artistIndex].trim().replace(/"/g, '') : '';
+
+        return { id, title, artist };
+      }).filter(song => song.id);
     }
   },
   mounted() {
     document.documentElement.setAttribute('data-theme', this.theme);
+    this.loadSongsFromPublicUrl();
     this.playNext();
   },
   watch: {
@@ -111,28 +159,39 @@ export default {
   height: 100vh;
 }
 
-.theme-toggle-button {
+.refresh-button,
+.theme-toggle-button,
+.next-button {
   background: none;
-  border: 2px solid var(--secondary-text); /* Thicker border */
+  border: 2px solid var(--secondary-text);
   color: var(--primary-text);
   cursor: pointer;
-  padding: 10px 15px; /* Increased padding */
-  border-radius: 8px; /* Larger border-radius */
+  padding: 10px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5em; /* Larger icon/text */
 }
 
-.theme-toggle-button:hover {
-  color: var(--accent-color); /* Use accent color for hover */
+.refresh-button:hover,
+.theme-toggle-button:hover,
+.next-button:hover {
+  color: var(--accent-color);
+  border-color: var(--accent-color);
+}
+
+.refresh-button svg,
+.theme-toggle-button svg,
+.next-button svg {
+  width: 24px;
+  height: 24px;
 }
 
 .container {
   display: flex;
-  gap: 30px; /* Increased gap */
+  gap: 30px;
   height: 100%;
-  padding: 20px; /* Added padding */
+  padding: 20px;
 }
 
 .player-section {
@@ -143,17 +202,17 @@ export default {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 30px; /* Increased gap */
+  gap: 30px;
 }
 
 .queue-section,
 .search-section {
-  border: 2px solid var(--secondary-text); /* Thicker border */
-  padding: 20px; /* Increased padding */
+  border: 2px solid var(--secondary-text);
+  padding: 20px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  border-radius: 10px; /* Larger border-radius */
+  border-radius: 10px;
 }
 
 .queue-section {
@@ -168,12 +227,12 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px; /* Increased margin */
+  margin-bottom: 15px;
 }
 
 .queue-header h2 {
   margin: 0;
-  font-size: 2em; /* Larger heading */
+  font-size: 2em;
 }
 
 .header-buttons {
@@ -181,72 +240,12 @@ export default {
   gap: 10px;
 }
 
-.next-button {
-  background: none;
-  border: 2px solid var(--secondary-text); /* Thicker border */
-  color: var(--primary-text);
-  cursor: pointer;
-  padding: 10px 15px; /* Increased padding */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px; /* Larger border-radius */
-}
-
-.next-button:hover {
-  color: var(--accent-color); /* Use accent color for hover */
-}
-
-.next-button svg {
-  width: 32px; /* Larger icon */
-  height: 32px; /* Larger icon */
-}
-
 .search-section input {
   background-color: var(--secondary-bg);
   color: var(--primary-text);
-  padding: 12px; /* Increased padding */
+  padding: 12px;
   border: 1px solid var(--secondary-text);
   border-radius: 5px;
-  font-size: 1.2em; /* Larger font size */
-}
-
-/* Dark theme styles */
-[data-theme='dark'] {
-  color: var(--primary-text);
-  background-color: var(--primary-bg);
-}
-
-
-[data-theme='dark'] .search-section input {
-  background-color: var(--secondary-bg);
-  color: var(--primary-text);
-}
-
-[data-theme='dark'] .theme-toggle-button {
-  border-color: var(--secondary-text);
-  color: var(--primary-text);
-}
-
-[data-theme='dark'] .theme-toggle-button:hover {
-  color: var(--accent-color);
-}
-
-[data-theme='dark'] .queue-section,
-[data-theme='dark'] .search-section {
-  border-color: var(--secondary-text);
-}
-
-[data-theme='dark'] .queue-header h2 {
-  color: var(--primary-text);
-}
-
-[data-theme='dark'] .next-button {
-  color: var(--primary-text);
-  border-color: var(--secondary-text);
-}
-
-[data-theme='dark'] .next-button:hover {
-  color: var(--accent-color);
+  font-size: 1.2em;
 }
 </style>
