@@ -9,9 +9,6 @@
           <div class="queue-header">
             <h2>待播清單</h2>
             <div class="header-buttons">
-              <button @click="loadSongsFromPublicUrl" class="refresh-button" title="重新整理歌單">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
-              </button>
               <button @click="toggleTheme" class="theme-toggle-button" title="切換深淺色模式">
                 <svg v-if="theme === 'dark'" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
                 <svg v-else xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
@@ -24,7 +21,12 @@
           <QueueList :queue="queue" @delete-song="handleDeleteSong" />
         </div>
         <div class="search-section">
-          <SearchBar @search="handleSearch" />
+          <div class="search-bar-wrapper" style="justify-content: space-between;">
+            <SearchBar @search="handleSearch" />
+            <button @click="loadSongsFromPublicUrl" class="refresh-button" title="重新整理歌單">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+            </button>
+          </div>
           <SongList :songs="filteredSongs" @add-song="addToQueue" />
         </div>
       </div>
@@ -192,6 +194,9 @@ export default {
   gap: 30px;
   height: 100%;
   padding: 20px;
+  @media (max-width: 768px) { /* 針對小螢幕 */
+    flex-direction: column; /* 讓元素垂直排列 */
+  }
 }
 
 .player-section {
@@ -210,7 +215,6 @@ export default {
   border: 2px solid var(--secondary-text);
   padding: 20px;
   overflow-y: auto;
-  display: flex;
   flex-direction: column;
   border-radius: 10px;
 }
@@ -247,5 +251,22 @@ export default {
   border: 1px solid var(--secondary-text);
   border-radius: 5px;
   font-size: 1.2em;
+}
+
+.search-bar-wrapper { /* 新增 */
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  justify-content: space-between; /* 新增 */
+}
+
+.search-bar-wrapper > input { /* 修改 */
+  width: 80%;
+}
+
+.refresh-button {
+  width: 20%;
+  justify-content: center;
 }
 </style>
